@@ -14,6 +14,8 @@ namespace EnemyAnimationFix.Patches
             if (SNet.IsMaster || newState.m_stateEnum != ES_StateEnum.PathMove || Clock.Time - _exitTime > MinBufferTime) return true;
 
             ES_PathMove pathMove = newState.Cast<ES_PathMove>();
+            if (pathMove.m_positionBuffer.Count == 0) return true;
+
             ForcePosition(pathMove.m_enemyAgent, pathMove, pathMove.m_positionBuffer[^1]);
             return false;
         }
