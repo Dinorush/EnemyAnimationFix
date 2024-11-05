@@ -11,21 +11,31 @@ namespace EnemyAnimationFix.Patches
     {
         internal static bool Pre_ChangeState(StateMachine<ES_Base> _, ES_Base newState)
         {
+            bool exited = _hasExited;
+            _hasExited = false;
+
             if (SNet.IsMaster || newState.m_stateEnum != ES_StateEnum.PathMove || Clock.Time - _exitTime > MinBufferTime) return true;
 
+            // If the buffer is empty, state is synced normally
             ES_PathMove pathMove = newState.Cast<ES_PathMove>();
             if (pathMove.m_positionBuffer.Count == 0) return true;
 
+            // Allow attacks that have finished to switch to path move sooner than the buffer
+            // (if attack is instant, e.g. fog sphere, it may exit sooner than the buffer)
+            if (!exited) return true;
+            
             ForcePosition(pathMove.m_enemyAgent, pathMove, pathMove.m_positionBuffer[^1]);
             return false;
         }
 
         private const float MinBufferTime = 0.1f;
         private static float _exitTime = 0f;
+        private static bool _hasExited = false;
         [HarmonyPatch(typeof(ES_PathMove), nameof(ES_PathMove.Exit))]
         [HarmonyPrefix]
         private static void Pre_Exit(ES_PathMove __instance)
         {
+            _hasExited = true;
             _exitTime = Clock.Time;
             pES_PathMoveData data;
             EnemyAgent enemy = __instance.m_enemyAgent;
