@@ -18,12 +18,19 @@ namespace EnemyAnimationFix
             new Harmony(MODNAME).PatchAll();
             ChangeStatePatches.ApplyNativePatch();
             AssetAPI.OnStartupAssetsLoaded += AssetAPI_OnStartupAssetsLoaded;
+            LevelAPI.OnLevelCleanup += LevelAPI_OnLevelCleanup;
             Log.LogMessage("Loaded " + MODNAME);
         }
 
         private void AssetAPI_OnStartupAssetsLoaded()
         {
             NotifyManager.Init();
+        }
+
+        private void LevelAPI_OnLevelCleanup()
+        {
+            // Fix screams not resetting between runs
+            Enemies.EB_InCombat.s_globalScreamTimer = 0;
         }
     }
 }
