@@ -7,7 +7,7 @@ using HarmonyLib;
 
 namespace EnemyAnimationFix
 {
-    [BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.1.0")]
+    [BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.1.1")]
     [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
     internal sealed class EntryPoint : BasePlugin
     {
@@ -17,6 +17,7 @@ namespace EnemyAnimationFix
             Log.LogMessage("Loading " + MODNAME);
             new Harmony(MODNAME).PatchAll();
             ChangeStatePatches.ApplyNativePatch();
+            Configuration.Init();
             AssetAPI.OnStartupAssetsLoaded += AssetAPI_OnStartupAssetsLoaded;
             LevelAPI.OnLevelCleanup += LevelAPI_OnLevelCleanup;
             Log.LogMessage("Loaded " + MODNAME);
