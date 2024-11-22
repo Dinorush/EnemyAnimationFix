@@ -40,10 +40,10 @@ namespace EnemyAnimationFix
         private static void BindAll(ConfigFile config)
         {
             string section = "Wave Settings";
-            string description = "Minimum amount of time before enemies become active after spawning.";
+            string description = "Minimum amount of time in seconds before enemies become active after spawning.";
             MinWaveSleepTime = config.Bind(section, "Minimum Wave Inactive Time", MinWaveSleepTime, description).Value;
 
-            description = "Maximum amount of time before enemies become active after spawning.";
+            description = "Maximum amount of time in seconds before enemies become active after spawning.";
             MaxWaveSleepTime = config.Bind(section, "Maximum Wave Inactive Time", MaxWaveSleepTime, description).Value;
         }
     }
