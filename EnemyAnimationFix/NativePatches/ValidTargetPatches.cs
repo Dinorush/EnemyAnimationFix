@@ -47,9 +47,7 @@ namespace EnemyAnimationFix.NativePatches
         }
 
         private static unsafe IntPtr FindAdd(IntPtr methodPointer)
-        {
-            IntPtr instructionIP = IntPtr.Zero;  // Return value, initialized to null.
-            
+        {            
             // Set up the decoder to go through the instructions.
             StreamCodeReader streamCodeReader = new(new UnmanagedMemoryStream((byte*)methodPointer, 65536L, 65536L, (FileAccess)1));
             Decoder decoder = Decoder.Create(sizeof(void*) * 8, streamCodeReader);
@@ -67,16 +65,16 @@ namespace EnemyAnimationFix.NativePatches
                     if ((instruction.NextIP - instruction.IP) != AddssLen)
                     {
                         DinoLogger.Error($"EnemyAnimationFix found an instruction with an unexpected width.");
-                        return instructionIP;
+                        return IntPtr.Zero;
                     }
 
-                    instructionIP = (IntPtr)(long)instruction.IP;
+                    return (IntPtr)(long)instruction.IP;
                 }
                 decoder.Decode(out instruction);
             }
             streamCodeReader.Stream.Dispose();
 
-            return instructionIP;
+            return IntPtr.Zero;
         }
     }
 }
