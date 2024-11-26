@@ -17,6 +17,7 @@ namespace EnemyAnimationFix
             Log.LogMessage("Loading " + MODNAME);
             new Harmony(MODNAME).PatchAll();
             ChangeStatePatches.ApplyNativePatch();
+            ValidTargetPatches.ApplyInstructionPatch();
             Configuration.Init();
             AssetAPI.OnStartupAssetsLoaded += AssetAPI_OnStartupAssetsLoaded;
             LevelAPI.OnLevelCleanup += LevelAPI_OnLevelCleanup;

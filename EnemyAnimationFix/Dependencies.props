@@ -18,6 +18,7 @@
 		<!-- BepInEx -->
 		<Reference Include="$(BIELibsFolder)\BepInEx.*.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\0Harmony.dll" Private="false" />
+		<Reference Include="$(BIELibsFolder)\Iced.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\Il2CppInterop.Runtime.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\MonoMod.RuntimeDetour.dll" Private="false" />
 
