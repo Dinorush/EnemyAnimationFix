@@ -31,12 +31,13 @@ namespace EnemyAnimationFix.NativePatches
                     if (instructionIP == IntPtr.Zero)
                     {
                         DinoLogger.Error("Unable to find instruction in HasValidTarget. Not applying fix for enemies stuck on spawning.");
+                        return;
                     }    
 
                     // Change that instruction into `NOP`s.
                     using (new MemoryProtectionCookie(instructionIP, Kernel32.MemoryProtectionConstant.ExecuteReadWrite, new IntPtr(16)))
                     {
-                        for (int j = 0; j < 8; ++j)
+                        for (int j = 0; j < AddssLen; ++j)
                         {
                             *(byte*)((ulong)instructionIP + (ulong)new IntPtr(j)) = NOP;
                         }
