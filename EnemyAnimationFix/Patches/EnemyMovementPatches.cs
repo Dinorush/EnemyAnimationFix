@@ -17,8 +17,8 @@ namespace EnemyAnimationFix.Patches
             if (SNet.IsMaster || newState.m_stateEnum != ES_StateEnum.PathMove || Clock.Time - _exitTime > MinBufferTime) return true;
 
             // If the buffer is empty, state is synced normally
-            ES_PathMove pathMove = newState.Cast<ES_PathMove>();
-            if (pathMove.m_positionBuffer.Count == 0) return true;
+            ES_PathMove? pathMove = newState.TryCast<ES_PathMove>();
+            if (pathMove == null || pathMove.m_positionBuffer.Count == 0) return true;
 
             // Allow attacks that have finished to switch to path move sooner than the buffer
             // (if attack is instant, e.g. fog sphere, it may exit sooner than the buffer)
