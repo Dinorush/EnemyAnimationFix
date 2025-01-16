@@ -1,6 +1,7 @@
 ﻿using Enemies;
 using EnemyAnimationFix.Networking.Notify;
 using HarmonyLib;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EnemyAnimationFix.Patches
 {
@@ -11,8 +12,10 @@ namespace EnemyAnimationFix.Patches
         [HarmonyPostfix]
         private static void Post_StrikerAttackPerform(ES_StrikerAttack __instance)
         {
+            if (!TryGetTentacle(__instance, out var tentacle)) return;
+
             // Fix tentacle attack animation ending early
-            __instance.m_tentacleAbility.m_tentacle.m_inAttackMove = true;
+            tentacle.m_inAttackMove = true;
         }
 
         [HarmonyPatch(typeof(ES_ShooterAttack), nameof(ES_ShooterAttack.OnAttackPerform))]
@@ -23,7 +26,7 @@ namespace EnemyAnimationFix.Patches
 
             // Fix shooter attack animation ending early
             EAB_ProjectileShooter ability = __instance.m_projectileAbility;
-            __instance.m_attackDoneTimer = Clock.Time + (ability.m_shotDelayMin + ability.m_shotDelayMax)/2f * ability.m_burstCount * 0.7f + __instance.m_burstCoolDownBeforeExit;
+            __instance.m_attackDoneTimer = Clock.Time + (ability.m_shotDelayMin + ability.m_shotDelayMax) / 2f * ability.m_burstCount * 0.7f + __instance.m_burstCoolDownBeforeExit;
         }
 
         [HarmonyPatch(typeof(ES_StrikerAttack), nameof(ES_StrikerAttack.CommonExit))]
@@ -32,11 +35,20 @@ namespace EnemyAnimationFix.Patches
         {
             if (!NotifyManager.MasterHasFix || Clock.Time <= __instance.m_performAttackTimer) return;
 
-            // Fix omni-state for normal tentacles
-            MovingEnemyTentacleBase tentacle = __instance.m_tentacleAbility.m_tentacle;
-            if (tentacle.m_currentRoutine == null) return;
+            if (!TryGetTentacle(__instance, out var tentacle) || tentacle.m_currentRoutine == null) return;
 
             tentacle.SwitchCoroutine(tentacle.AttackIn(tentacle.m_attackInDuration));
+        }
+
+        // Generally shouldn't fail, but can in some rare cases (idk why)
+        private static bool TryGetTentacle(ES_StrikerAttack attack, [MaybeNullWhen(false)] out MovingEnemyTentacleBase tentacle)
+        {
+            tentacle = null;
+            var ability = attack.m_tentacleAbility;
+            if (ability == null) return false;
+
+            tentacle = ability.m_tentacle;
+            return tentacle != null;
         }
 
         [HarmonyPatch(typeof(ES_PathMove), nameof(ES_PathMove.Exit))]
