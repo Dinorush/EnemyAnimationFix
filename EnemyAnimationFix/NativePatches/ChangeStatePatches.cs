@@ -8,7 +8,6 @@ using Il2CppInterop.Runtime.Runtime.VersionSpecific.MethodInfo;
 using StateMachines;
 using System;
 using System.Runtime.InteropServices;
-using EnemyAnimationFix.Patches;
 using EnemyAnimationFix.Networking.Notify;
 
 namespace EnemyAnimationFix.NativePatches
@@ -23,7 +22,6 @@ namespace EnemyAnimationFix.NativePatches
         internal unsafe static void ApplyNativePatch()
         {
             NativePatchAPI.AddChangeStatePrefix(FixMeleeCancel);
-            NativePatchAPI.AddChangeStatePrefix(EnemyMovementPatches.Pre_ChangeState);
 
             INativeClassStruct val = UnityVersionHandler.Wrap((Il2CppClass*) Il2CppClassPointerStore<StateMachine<ES_Base>>.NativeClassPtr);
 
