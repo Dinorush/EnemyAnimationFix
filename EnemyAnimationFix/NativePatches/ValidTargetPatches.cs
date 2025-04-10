@@ -63,6 +63,7 @@ namespace EnemyAnimationFix.NativePatches
                 if (instruction.Mnemonic == Mnemonic.Addss)
                 {
                     // Error handling.
+                    streamCodeReader.Stream.Close();
                     if ((instruction.NextIP - instruction.IP) != AddssLen)
                     {
                         DinoLogger.Error($"EnemyAnimationFix found an instruction with an unexpected width.");
@@ -73,8 +74,7 @@ namespace EnemyAnimationFix.NativePatches
                 }
                 decoder.Decode(out instruction);
             }
-            streamCodeReader.Stream.Dispose();
-
+            streamCodeReader.Stream.Close();
             return IntPtr.Zero;
         }
     }

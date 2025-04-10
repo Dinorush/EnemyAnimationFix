@@ -27,7 +27,7 @@ namespace EnemyAnimationFix.Patches
 
             pMiniDamageData data = default;
             float mod = proj != null ? proj.EffectMultiplier : 1f;
-            data.damage.Set((volume.volume + volume.expandVolume) * mod, 100f);
+            data.damage.Set((volume.volume + volume.expandVolume) * mod, __instance.HealthMax);
             __instance.m_glueDamagePacket.Send(data, SNet_ChannelType.GameNonCritical);
         }
 
