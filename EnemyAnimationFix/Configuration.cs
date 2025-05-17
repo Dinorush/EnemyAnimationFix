@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using BepInEx;
 using BepInEx.Configuration;
 using GTFO.API.Utilities;
@@ -8,17 +7,30 @@ namespace EnemyAnimationFix
 {
     public static class Configuration
     {
-        public static float MinWaveSleepTime { get; private set; } = 0f;
-        public static float MaxWaveSleepTime { get; private set; } = 6f;
+        private readonly static ConfigEntry<float> _minWaveSleepTime;
+        public static float MinWaveSleepTime => _minWaveSleepTime.Value;
+        private readonly static ConfigEntry<float> _maxWaveSleepTime;
+        public static float MaxWaveSleepTime => _maxWaveSleepTime.Value;
 
-        public static event Action? OnReload;
+        private readonly static ConfigEntry<bool> _disableCullNear;
+        public static bool DisableNearCull => _disableCullNear.Value;
 
         private readonly static ConfigFile configFile;
 
         static Configuration()
         {
             configFile = new ConfigFile(Path.Combine(Paths.ConfigPath, EntryPoint.MODNAME + ".cfg"), saveOnInit: true);
-            BindAll(configFile);
+
+            string section = "Wave Settings";
+            string description = "Minimum amount of time in seconds before enemies become active after spawning.";
+            _minWaveSleepTime = configFile.Bind(section, "Minimum Wave Inactive Time", 0f, description);
+
+            description = "Maximum amount of time in seconds before enemies become active after spawning.";
+            _maxWaveSleepTime = configFile.Bind(section, "Maximum Wave Inactive Time", 6f, description);
+
+            section = "Cull Settings";
+            description = "Prevents nearby or meleeing enemies from culling.\nThis fixes enemies not on screen failing to play footstep sounds or hit players with melee attacks.";
+            _disableCullNear = configFile.Bind(section, "Disable Culling Nearby Enemies", true, description);
         }
 
         internal static void Init()
@@ -30,21 +42,6 @@ namespace EnemyAnimationFix
         private static void OnFileChanged(LiveEditEventArgs _)
         {
             configFile.Reload();
-            string section = "Wave Settings";
-            MinWaveSleepTime = (float)configFile[section, "Minimum Wave Inactive Time"].BoxedValue;
-            MaxWaveSleepTime = (float)configFile[section, "Maximum Wave Inactive Time"].BoxedValue;
-
-            OnReload?.Invoke();
-        }
-
-        private static void BindAll(ConfigFile config)
-        {
-            string section = "Wave Settings";
-            string description = "Minimum amount of time in seconds before enemies become active after spawning.";
-            MinWaveSleepTime = config.Bind(section, "Minimum Wave Inactive Time", MinWaveSleepTime, description).Value;
-
-            description = "Maximum amount of time in seconds before enemies become active after spawning.";
-            MaxWaveSleepTime = config.Bind(section, "Maximum Wave Inactive Time", MaxWaveSleepTime, description).Value;
         }
     }
 }
