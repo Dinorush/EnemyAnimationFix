@@ -27,6 +27,8 @@ namespace EnemyAnimationFix.Patches
         {
             if (!Configuration.DisableNearCull) return;
 
+            CheckDeadCullers();
+
             var time = Clock.Time;
             if (time > _nextUpdateTime)
             {
@@ -41,6 +43,15 @@ namespace EnemyAnimationFix.Patches
                     culler.CullKey = C_Keys.CurrentCullKey;
                     culler.Show();
                 }
+            }
+        }
+
+        private static void CheckDeadCullers()
+        {
+            for (int i = _nearbyCullers.Count - 1; i >= 0; i--)
+            {
+                if (_nearbyCullers[i].animator == null)
+                    _nearbyCullers.RemoveAt(i);
             }
         }
 
