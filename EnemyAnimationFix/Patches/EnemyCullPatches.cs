@@ -1,4 +1,5 @@
-﻿using CullingSystem;
+﻿using AIGraph;
+using CullingSystem;
 using Enemies;
 using HarmonyLib;
 using Player;
@@ -12,8 +13,8 @@ namespace EnemyAnimationFix.Patches
     [HarmonyPatch]
     internal class EnemyCullPatches
     {
-        private readonly static List<C_CullBucket> _nearbyCullers = new(NearbyCap);
-        private readonly static Dictionary<IntPtr, (C_CullBucket bucket, float sqrDist)> _cachedCullers = new();
+        private readonly static List<(Animator animator, C_CullBucket bucket)> _nearbyCullers = new(NearbyCap);
+        private readonly static Dictionary<IntPtr, (EnemyAgent enemy, float sqrDist)> _cachedEnemies = new();
         private static float _nextUpdateTime = 0f;
         private const float UpdateInterval = 0.1f;
         private const float NearbySqrDist = 25f * 25f; // Seems near the high-end of footstep ranges (based on BBCs).
@@ -33,7 +34,7 @@ namespace EnemyAnimationFix.Patches
                 CacheCullers();
             }
 
-            foreach (var culler in _nearbyCullers)
+            foreach ((_, var culler) in _nearbyCullers)
             {
                 if (culler.CullKey != C_Keys.CurrentCullKey)
                 {
@@ -45,45 +46,50 @@ namespace EnemyAnimationFix.Patches
 
         private static void CacheCullers()
         {
+            foreach ((var animator, _) in _nearbyCullers)
+                if (animator.cullingMode == AnimatorCullingMode.CullUpdateTransforms)
+                    animator.cullingMode = AnimatorCullingMode.CullCompletely;
             _nearbyCullers.Clear();
             if (!PlayerManager.HasLocalPlayerAgent()) return;
 
             var player = PlayerManager.GetLocalPlayerAgent();
             var pos = player.Position;
-            var node = player.m_movingCuller.CurrentNode;
+            var node = player.CourseNode;
             CacheNearbyEnemies(node, pos);
-            if (_cachedCullers.Count < NearbyCap)
+            if (_cachedEnemies.Count < NearbyCap)
             {
                 foreach (var portal in node.m_portals)
                 {
-                    if (portal.IsOpen && (portal.Bounds.ClosestPoint(pos) - pos).sqrMagnitude < NearbySqrDist)
-                        CacheNearbyEnemies(portal.GetOpposite(node), pos);
+                    if (portal.IsTraversable && (portal.m_cullPortal.Bounds.ClosestPoint(pos) - pos).sqrMagnitude < NearbySqrDist)
+                        CacheNearbyEnemies(portal.GetOppositeNode(node), pos);
 
-                    if (_cachedCullers.Count > NearbyCap) break;
+                    if (_cachedEnemies.Count > NearbyCap) break;
                 }
             }
 
             _nearbyCullers.AddRange(
-                _cachedCullers
+                _cachedEnemies
                 .OrderBy(kv => kv.Value.sqrDist)
                 .Take(NearbyCap)
-                .Select(kv => kv.Value.bucket)
+                .Select(kv => (kv.Value.enemy.Locomotion.m_animator, kv.Value.enemy.MovingCuller.CullBucket))
                 );
-            _cachedCullers.Clear();
+            foreach ((var animator, _) in _nearbyCullers)
+                if (animator.cullingMode == AnimatorCullingMode.CullCompletely)
+                    animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+            _cachedEnemies.Clear();
         }
 
-        private static void CacheNearbyEnemies(C_Node node, Vector3 pos)
+        private static void CacheNearbyEnemies(AIG_CourseNode node, Vector3 pos)
         {
-            foreach (var culler in node.m_movingCullers)
+            foreach (var enemy in node.m_enemiesInNode)
             {
-                var bucket = culler.CullBucket;
-                if (_cachedCullers.ContainsKey(bucket.Pointer)) continue;
+                if (_cachedEnemies.ContainsKey(enemy.Pointer)) continue;
 
-                var sqrDiff = (culler.m_position - pos).sqrMagnitude;
+                var sqrDiff = (enemy.Position - pos).sqrMagnitude;
                 if (sqrDiff < NearbySqrDist)
-                    _cachedCullers.Add(bucket.Pointer, (bucket, sqrDiff));
+                    _cachedEnemies.Add(enemy.Pointer, (enemy, sqrDiff));
 
-                if (_cachedCullers.Count > NearbyCap) return;
+                if (_cachedEnemies.Count > NearbyCap) return;
             }
         }
 
@@ -93,8 +99,11 @@ namespace EnemyAnimationFix.Patches
         private static void FixFootstepCulling(EnemyAgent __instance, bool mode)
         {
             if (!Configuration.DisableNearCull || !mode) return;
+            
+            var animator = __instance.Locomotion.m_animator;
+            if (!_nearbyCullers.Any(pair => animator.Pointer == pair.animator.Pointer)) return;
 
-            __instance.Locomotion.m_animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+            animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
         }
 
         [HarmonyPatch(typeof(ES_StrikerMelee), nameof(ES_StrikerMelee.DoStartMeleeAttack))]
