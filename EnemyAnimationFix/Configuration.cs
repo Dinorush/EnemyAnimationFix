@@ -29,7 +29,7 @@ namespace EnemyAnimationFix
             _maxWaveSleepTime = configFile.Bind(section, "Maximum Wave Inactive Time", 6f, description);
 
             section = "Cull Settings";
-            description = "Prevents nearby or meleeing enemies from culling.\nThis fixes enemies not on screen failing to play footstep sounds or hit players with melee attacks.";
+            description = "Prevents nearby or attacking enemies from culling.\nThis fixes enemies not on screen failing to play footstep sounds or move when attacking.";
             _disableCullNear = configFile.Bind(section, "Disable Culling Nearby Enemies", true, description);
         }
 
