@@ -117,21 +117,23 @@ namespace EnemyAnimationFix.Patches
             animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
         }
 
+        [HarmonyPatch(typeof(ES_EnemyAttackBase), nameof(ES_EnemyAttackBase.DoStartAttack))]
         [HarmonyPatch(typeof(ES_StrikerMelee), nameof(ES_StrikerMelee.DoStartMeleeAttack))]
         [HarmonyWrapSafe]
         [HarmonyPrefix]
-        private static void DisableMeleeAnimCulling(ES_StrikerMelee __instance)
+        private static void DisableAttackAnimCulling(ES_EnemyAttackBase __instance)
         {
             if (!Configuration.DisableNearCull) return;
 
             __instance.m_locomotion.m_animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
         }
 
+        [HarmonyPatch(typeof(ES_EnemyAttackBase), nameof(ES_EnemyAttackBase.CommonExit))]
         [HarmonyPatch(typeof(ES_StrikerMelee), nameof(ES_StrikerMelee.Exit))]
         [HarmonyPatch(typeof(ES_StrikerMelee), nameof(ES_StrikerMelee.SyncExit))]
         [HarmonyWrapSafe]
         [HarmonyPostfix]
-        private static void EnableMeleeAnimCulling(ES_StrikerMelee __instance)
+        private static void EnableAttackCulling(ES_EnemyAttackBase __instance)
         {
             if (!Configuration.DisableNearCull) return;
 
