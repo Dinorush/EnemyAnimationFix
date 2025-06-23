@@ -140,5 +140,27 @@ namespace EnemyAnimationFix.Patches
             var agent = __instance.m_locomotion.m_agent;
             agent.SetAnimatorCullingEnabled(agent.MovingCuller.m_animatorCullingEnabled);
         }
+
+        [HarmonyPatch(typeof(ES_Hitreact), nameof(ES_Hitreact.DoHitReact))]
+        [HarmonyWrapSafe]
+        [HarmonyPrefix]
+        private static void DisableStaggerCulling(ES_HitreactBase __instance)
+        {
+            if (!Configuration.DisableNearCull) return;
+
+            __instance.m_locomotion.m_animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+        }
+
+        [HarmonyPatch(typeof(ES_Hitreact), nameof(ES_Hitreact.Exit))]
+        [HarmonyPatch(typeof(ES_Hitreact), nameof(ES_Hitreact.SyncExit))]
+        [HarmonyWrapSafe]
+        [HarmonyPostfix]
+        private static void EnableStaggerCulling(ES_HitreactBase __instance)
+        {
+            if (!Configuration.DisableNearCull) return;
+
+            var agent = __instance.m_locomotion.m_agent;
+            agent.SetAnimatorCullingEnabled(agent.MovingCuller.m_animatorCullingEnabled);
+        }
     }
 }

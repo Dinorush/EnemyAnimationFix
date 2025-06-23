@@ -1,5 +1,4 @@
 ﻿using Enemies;
-using EnemyAnimationFix.Utils;
 using HarmonyLib;
 
 namespace EnemyAnimationFix.Patches
@@ -24,6 +23,15 @@ namespace EnemyAnimationFix.Patches
             if (__instance.m_locomotion.AnimHandleName != EnemyLocomotion.AnimatorControllerHandleName.EnemyFiddler) return;
 
             attackIndex = UnityEngine.Random.Range(0, 2);
+        }
+
+        [HarmonyPatch(typeof(ES_Hitreact), nameof(ES_Hitreact.DoHitReact))]
+        [HarmonyPrefix]
+        private static void FixLowStagger(ES_Hitreact __instance, ref int index, ES_HitreactType hitreactType, ImpactDirection impactDirection)
+        {
+            if (__instance.m_locomotion.AnimHandleName != EnemyLocomotion.AnimatorControllerHandleName.EnemyLow || hitreactType != ES_HitreactType.Light || impactDirection != ImpactDirection.Back) return;
+
+            index = UnityEngine.Random.Range(0, 3);
         }
     }
 }
