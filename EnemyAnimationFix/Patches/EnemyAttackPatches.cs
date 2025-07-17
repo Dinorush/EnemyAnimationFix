@@ -8,6 +8,18 @@ namespace EnemyAnimationFix.Patches
     [HarmonyPatch]
     internal static class EnemyAttackPatches
     {
+        [HarmonyPatch(typeof(MovingEnemyTentacleBase), nameof(MovingEnemyTentacleBase.BuildAndUpdateAttackSpline))]
+        [HarmonyPostfix]
+        private static void Post_AttackSplineBuilt(MovingEnemyTentacleBase __instance, bool __result)
+        {
+            if (__result) return;
+
+            __instance.TentacleRelLen = __instance.MinLengthWhenIn;
+            __instance.m_inAttackMove = false;
+            __instance.m_goingIn = false;
+            __instance.m_owner.Locomotion.ChangeState(ES_StateEnum.PathMove);
+        }
+
         [HarmonyPatch(typeof(ES_StrikerAttack), nameof(ES_StrikerAttack.OnAttackPerform))]
         [HarmonyPostfix]
         private static void Post_StrikerAttackPerform(ES_StrikerAttack __instance)
