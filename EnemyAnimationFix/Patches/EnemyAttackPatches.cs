@@ -77,19 +77,24 @@ namespace EnemyAnimationFix.Patches
 
         private static bool ResetTankTongues(EnemyAbilities abilities, Agents.AgentAbility abilityType)
         {
-            EnemyAbility? ability = abilities.GetAbility(abilityType);
-            if (ability == null) return false;
+            if (!abilities.HasAbility(abilityType)) return false;
 
-            EAB_MovingEnemyTentacleMultiple? tankAbility = ability.TryCast<EAB_MovingEnemyTentacleMultiple>();
-            if (tankAbility == null) return false;
-
-            foreach (MovingEnemyTentacleBase tentacle in tankAbility.m_tentacles)
+            int type = (int)abilityType;
+            bool found = false;
+            foreach (var comp in abilities.AbilityComps[type].Comps)
             {
-                if (tentacle.m_currentRoutine == null) continue;
+                EAB_MovingEnemyTentacleMultiple? tankAbility = comp.TryCast<EAB_MovingEnemyTentacleMultiple>();
+                if (tankAbility == null) continue;
+                found = true;
 
-                tentacle.SwitchCoroutine(tentacle.AttackIn(tentacle.m_attackInDuration));
+                foreach (MovingEnemyTentacleBase tentacle in tankAbility.m_tentacles)
+                {
+                    if (tentacle.m_currentRoutine == null) continue;
+
+                    tentacle.SwitchCoroutine(tentacle.AttackIn(tentacle.m_attackInDuration));
+                }
             }
-            return true;
+            return found;
         }
 
         [HarmonyPatch(typeof(ES_ShooterAttack), nameof(ES_ShooterAttack.CommonExit))]
