@@ -22,7 +22,7 @@ namespace EnemyAnimationFix.Patches
         {
             if (__instance.m_locomotion.AnimHandleName != EnemyLocomotion.AnimatorControllerHandleName.EnemyFiddler) return;
 
-            attackIndex = UnityEngine.Random.Range(0, 2);
+            attackIndex %= 2;
         }
 
         [HarmonyPatch(typeof(ES_Hitreact), nameof(ES_Hitreact.DoHitReact))]
@@ -31,7 +31,7 @@ namespace EnemyAnimationFix.Patches
         {
             if (__instance.m_locomotion.AnimHandleName != EnemyLocomotion.AnimatorControllerHandleName.EnemyLow || hitreactType != ES_HitreactType.Light || impactDirection != ImpactDirection.Back) return;
 
-            index = UnityEngine.Random.Range(0, 3);
+            index %= 3;
         }
     }
 }
