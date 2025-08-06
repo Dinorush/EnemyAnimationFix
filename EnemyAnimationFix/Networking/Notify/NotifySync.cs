@@ -4,7 +4,7 @@ namespace EnemyAnimationFix.Networking.Notify
 {
     internal sealed class NotifySync : SyncedEvent<NotifyData>
     {
-        public override string GUID => "EAFNF";
+        public override string GUID => "NOTIF";
 
         protected override void Receive(NotifyData packet)
         {

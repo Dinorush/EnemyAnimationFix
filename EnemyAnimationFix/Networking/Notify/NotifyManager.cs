@@ -5,11 +5,11 @@ namespace EnemyAnimationFix.Networking.Notify
 {
     internal static class NotifyManager
     {
-        private readonly static NotifySync Sync = new();
+        private readonly static NotifySync _sync = new();
 
         internal static void Init()
         {
-            Sync.Setup();
+            _sync.Setup();
         }
 
         public static bool MasterHasFix { get; private set; } = false;
@@ -17,7 +17,7 @@ namespace EnemyAnimationFix.Networking.Notify
 
         internal static void SendNotify(SNet_Player player)
         {
-            Sync.Send(new() { lookup = SNet.LocalPlayer.Lookup }, player);
+            _sync.Send(new() { lookup = SNet.LocalPlayer.Lookup }, player);
         }
 
         internal static void ReceiveNotify(SNet_Player player)

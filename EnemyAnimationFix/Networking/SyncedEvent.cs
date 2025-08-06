@@ -18,7 +18,7 @@ namespace EnemyAnimationFix.Networking
             if (_isSetup)
                 return;
 
-            EventName = $"EWC{GUID}";
+            EventName = $"EAF{GUID}";
             NetworkAPI.RegisterEvent<T>(EventName, ReceiveClient_Callback);
             _isSetup = true;
         }

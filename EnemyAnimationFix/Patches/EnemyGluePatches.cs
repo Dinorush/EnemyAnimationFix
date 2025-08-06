@@ -1,4 +1,5 @@
 ﻿using Enemies;
+using EnemyAnimationFix.Networking.Foam;
 using HarmonyLib;
 using SNetwork;
 
@@ -9,7 +10,7 @@ namespace EnemyAnimationFix.Patches
     {
         [HarmonyPatch(typeof(Dam_EnemyDamageBase), nameof(Dam_EnemyDamageBase.AddToTotalGlueVolume))]
         [HarmonyPostfix]
-        private static void SyncGlueData(Dam_EnemyDamageBase __instance, GlueGunProjectile? proj, GlueVolumeDesc volume)
+        private static void SyncGlueData(Dam_EnemyDamageBase __instance)
         {
             if (__instance.Owner.Locomotion.CurrentStateEnum == ES_StateEnum.StuckInGlue)
             {
@@ -25,10 +26,7 @@ namespace EnemyAnimationFix.Patches
 
             if (!SNet.IsMaster) return;
 
-            pMiniDamageData data = default;
-            float mod = proj != null ? proj.EffectMultiplier : 1f;
-            data.damage.Set((volume.volume + volume.expandVolume) * mod, __instance.HealthMax);
-            __instance.m_glueDamagePacket.Send(data, SNet_ChannelType.GameNonCritical);
+            FoamManager.SendFoam(__instance.Owner, __instance.AttachedGlueRel);
         }
 
         [HarmonyPatch(typeof(ES_StuckInGlue), nameof(ES_StuckInGlue.ActivateState))]
@@ -38,10 +36,14 @@ namespace EnemyAnimationFix.Patches
             return SNet.IsMaster;
         }
 
-        [HarmonyPatch(typeof(ES_StuckInGlue), nameof(ES_StuckInGlue.ActivateState))]
+        [HarmonyPatch(typeof(ES_StuckInGlue), nameof(ES_StuckInGlue.DoStartStuckInGlue))]
         [HarmonyPostfix]
         private static void FixFadeOutTime(ES_StuckInGlue __instance)
         {
+            // JFS - Should always be the same on host, but not touching it there just in case.
+            if (!SNet.IsMaster)
+                __instance.m_enemyAgent.Damage.m_attachedGlueVolume = __instance.m_enemyAgent.EnemyBalancingData.GlueTolerance;
+
             // Make visual fade out after the glue fade begins so it lines up better
             __instance.m_fadeOutTimer = __instance.m_fadeInTimer + (__instance.m_fadeOutDuration - __instance.m_fadeInDuration) * 0.1f;
         }

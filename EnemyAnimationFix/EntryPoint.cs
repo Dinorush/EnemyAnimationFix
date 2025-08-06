@@ -1,13 +1,14 @@
 ﻿using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using EnemyAnimationFix.NativePatches;
+using EnemyAnimationFix.Networking.Foam;
 using EnemyAnimationFix.Networking.Notify;
 using GTFO.API;
 using HarmonyLib;
 
 namespace EnemyAnimationFix
 {
-    [BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.3.6")]
+    [BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.3.7")]
     [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
     internal sealed class EntryPoint : BasePlugin
     {
@@ -26,6 +27,7 @@ namespace EnemyAnimationFix
         private void AssetAPI_OnStartupAssetsLoaded()
         {
             NotifyManager.Init();
+            FoamManager.Init();
         }
 
         private void LevelAPI_OnLevelCleanup()
