@@ -97,7 +97,7 @@ namespace EnemyAnimationFix.Patches
                 if (_cachedEnemies.ContainsKey(enemy.Pointer)) continue;
 
                 var sqrDiff = (enemy.Position - pos).sqrMagnitude;
-                if (sqrDiff < NearbySqrDist)
+                if (enemy.Locomotion.CurrentStateEnum == ES_StateEnum.PathMove && sqrDiff < NearbySqrDist)
                     _cachedEnemies.Add(enemy.Pointer, (enemy, sqrDiff));
 
                 if (_cachedEnemies.Count > NearbyCap) return;
