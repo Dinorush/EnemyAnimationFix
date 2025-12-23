@@ -17,7 +17,7 @@ namespace EnemyAnimationFix.Networking.Notify
 
         internal static void SendNotify(SNet_Player player)
         {
-            _sync.Send(new() { lookup = SNet.LocalPlayer.Lookup }, player);
+            _sync.Send(new() { lookup = SNet.LocalPlayer.Lookup }, player, SNet_ChannelType.GameReceiveCritical);
         }
 
         internal static void ReceiveNotify(SNet_Player player)

@@ -3,12 +3,13 @@ using BepInEx.Unity.IL2CPP;
 using EnemyAnimationFix.NativePatches;
 using EnemyAnimationFix.Networking.Foam;
 using EnemyAnimationFix.Networking.Notify;
+using EnemyAnimationFix.Patches;
 using GTFO.API;
 using HarmonyLib;
 
 namespace EnemyAnimationFix
 {
-    [BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.3.9")]
+    [BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.4.0")]
     [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
     internal sealed class EntryPoint : BasePlugin
     {
@@ -34,6 +35,7 @@ namespace EnemyAnimationFix
         {
             // Fix screams not resetting between runs
             Enemies.EB_InCombat.s_globalScreamTimer = 0;
+            EnemyMovementPatches.OnCleanup();
         }
     }
 }

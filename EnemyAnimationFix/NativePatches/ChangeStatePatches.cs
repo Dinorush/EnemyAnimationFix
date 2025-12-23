@@ -1,6 +1,9 @@
 ﻿using BepInEx.Unity.IL2CPP.Hook;
-using EnemyAnimationFix.API;
 using Enemies;
+using EnemyAnimationFix.API;
+using EnemyAnimationFix.Networking.Notify;
+using EnemyAnimationFix.Patches;
+using EnemyAnimationFix.Utils;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.Runtime;
 using Il2CppInterop.Runtime.Runtime.VersionSpecific.Class;
@@ -8,8 +11,6 @@ using Il2CppInterop.Runtime.Runtime.VersionSpecific.MethodInfo;
 using StateMachines;
 using System;
 using System.Runtime.InteropServices;
-using EnemyAnimationFix.Networking.Notify;
-using EnemyAnimationFix.Utils;
 
 namespace EnemyAnimationFix.NativePatches
 {
@@ -23,6 +24,7 @@ namespace EnemyAnimationFix.NativePatches
         internal unsafe static void ApplyNativePatch()
         {
             NativePatchAPI.AddChangeStatePrefix(FixMeleeCancel);
+            NativePatchAPI.AddChangeStatePrefix(EnemyMovementPatches.Pre_ChangeState);
 
             INativeClassStruct val = UnityVersionHandler.Wrap((Il2CppClass*) Il2CppClassPointerStore<StateMachine<ES_Base>>.NativeClassPtr);
 
