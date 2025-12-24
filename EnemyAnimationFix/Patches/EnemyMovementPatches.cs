@@ -1,11 +1,14 @@
-﻿using Enemies;
+﻿using BepInEx.Unity.IL2CPP.Utils.Collections;
+using Enemies;
 using EnemyAnimationFix.Networking.Notify;
 using EnemyAnimationFix.Utils.Extensions;
 using HarmonyLib;
 using SNetwork;
 using StateMachines;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace EnemyAnimationFix.Patches
 {
@@ -14,6 +17,7 @@ namespace EnemyAnimationFix.Patches
     {
         private const float MinBufferTime = 0.25f;
         private static readonly Dictionary<IntPtr, float> _exitTimes = new();
+        private static readonly Dictionary<IntPtr, Coroutine> _smoothRoutines = new();
         private static readonly HashSet<IntPtr> _usedFogs = new();
 
         public static void OnCleanup()
@@ -34,7 +38,7 @@ namespace EnemyAnimationFix.Patches
             ES_PathMove? pathMove = newState.TryCast<ES_PathMove>();
             if (pathMove == null || pathMove.m_positionBuffer.Count == 0) return true;
 
-            ForcePosition(pathMove.m_enemyAgent, pathMove, pathMove.m_positionBuffer[^1]);
+            StartUpdatePosition(pathMove.m_enemyAgent, pathMove);
             return false;
         }
 
@@ -46,12 +50,14 @@ namespace EnemyAnimationFix.Patches
             var pathMoveBase = __instance.Locomotion.PathMove;
             if (pathMoveBase.m_stateEnum != ES_StateEnum.PathMove) return;
 
+            var pathMove = pathMoveBase.TryCast<ES_PathMove>();
+            if (pathMove == null) return;
+
             var pointer = __instance.Pointer;
             if (!_exitTimes.ContainsKey(pointer))
                 __instance.AddOnDeadOnce(() => _exitTimes.Remove(pointer));
             _exitTimes[__instance.Pointer] = Clock.Time + MinBufferTime;
 
-            var pathMove = pathMoveBase.Cast<ES_PathMove>();
             if (SNet.IsMaster) // Force send position data when leaving PathMove to sync clients' positions
             {
                 data = pathMove.m_pathMoveData;
@@ -69,20 +75,71 @@ namespace EnemyAnimationFix.Patches
             if (pathMove.m_positionBuffer.Count == 0) return;
 
             // Force update position data when leaving PathMove to sync position
-            data = pathMove.m_positionBuffer[^1];
-            ForcePosition(__instance, pathMove, data);
+            StartUpdatePosition(__instance, pathMove);
         }
 
-        private static void ForcePosition(EnemyAgent enemy, ES_PathMove pathMove, pES_PathMoveData data)
+        private static void StartUpdatePosition(EnemyAgent enemy, ES_PathMove pathMove)
         {
-            enemy.transform.position = data.Position;
-            enemy.MovingCuller.UpdatePosition(enemy.DimensionIndex, data.Position);
-            enemy.Position = data.Position;
-            pathMove.m_lastPos = data.Position;
+            var data = pathMove.m_positionBuffer[^1];
+
             enemy.Locomotion.ForceNode(data.CourseNode);
             pathMove.m_targetPosition = data.Position;
-            pathMove.m_moveDir = data.Movement.Get(1f);
             enemy.TargetLookDir = data.TargetLookDir.Value;
+            pathMove.m_moveDir = data.Movement.Get(1f);
+
+            if (!enemy.MovingCuller.IsShown || Configuration.SyncLerpTime <= 0f)
+            {
+                UpdatePosition(enemy, pathMove, data.Position);
+                return;
+            }
+
+            if (_smoothRoutines.TryGetValue(enemy.Pointer, out var coroutine))
+                enemy.StopCoroutine(coroutine);
+            _smoothRoutines[enemy.Pointer] = enemy.StartCoroutine(LerpPosition(enemy, pathMove).WrapToIl2Cpp());
+        }
+
+        private static void UpdatePosition(EnemyAgent enemy, ES_PathMove pathMove, Vector3 pos)
+        {
+            enemy.transform.position = pos;
+            pathMove.m_lastPos = pos;
+            enemy.Position = pos;
+
+            enemy.MovingCuller.UpdatePosition(enemy.DimensionIndex, pos);
+            enemy.MovingCuller.Culler.NeedsShadowRefresh = true;
+        }
+
+        private static IEnumerator LerpPosition(EnemyAgent enemy, ES_PathMove pathMove)
+        {
+            var data = pathMove.m_positionBuffer[^1];
+            Vector3 posDiff = data.Position - enemy.m_position;
+
+            float lastTime = Clock.Time;
+            float totalTime = 0f;
+            float prevProgress = 0f;
+            var locomotion = enemy.Locomotion;
+
+            while (totalTime < Configuration.SyncLerpTime)
+            {
+                yield return null;
+                if (locomotion.CurrentStateEnum == ES_StateEnum.PathMove)
+                {
+                    _smoothRoutines.Remove(enemy.Pointer);
+                    yield break;
+                }
+
+                float time = Clock.Time;
+                totalTime += time - lastTime;
+                lastTime = time;
+                float t = Math.Clamp(totalTime / Configuration.SyncLerpTime, 0f, 1f);
+
+                float progress = 1f - (1f - t) * (1f - t);
+                float delta = progress - prevProgress;
+                prevProgress = progress;
+
+                UpdatePosition(enemy, pathMove, enemy.m_position + posDiff * delta);
+            }
+
+            _smoothRoutines.Remove(enemy.Pointer);
         }
 
         [HarmonyPatch(typeof(EAB_FogSphere), nameof(EAB_FogSphere.DoTrigger))]
