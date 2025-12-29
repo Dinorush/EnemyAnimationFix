@@ -12,6 +12,14 @@ namespace EnemyAnimationFix.Patches
         {
             enemyAgent.m_hasValidTarget = false;
             enemyAgent.m_validTargetInterval = Clock.Time + UnityEngine.Random.RandomRange(Configuration.MinWaveSleepTime, Configuration.MaxWaveSleepTime);
+
+            EnemyAgent.TakeDamageDelegate del = null!;
+            del = (Action<float, ES_HitreactType>)((_, _) =>
+            {
+                enemyAgent.m_validTargetInterval = 0;
+                enemyAgent.TookDamage -= del;
+            });
+            enemyAgent.TookDamage += del;
         }
 
         [HarmonyPatch(typeof(EB_InCombat_MoveToNextNode_PathOpen), nameof(EB_InCombat_MoveToNextNode_PathOpen.UpdateBehaviour))]
