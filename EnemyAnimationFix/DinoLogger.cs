@@ -1,6 +1,6 @@
 ﻿using BepInEx.Logging;
 
-namespace EnemyAnimationFix.Utils
+namespace EnemyAnimationFix
 {
     internal static class DinoLogger
     {

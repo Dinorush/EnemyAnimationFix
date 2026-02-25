@@ -1,5 +1,4 @@
-﻿using EnemyAnimationFix.Utils;
-using Iced.Intel;
+﻿using Iced.Intel;
 using Il2CppInterop.Runtime.Runtime.VersionSpecific.Class;
 using Il2CppInterop.Runtime.Runtime.VersionSpecific.MethodInfo;
 using Il2CppInterop.Runtime.Runtime;

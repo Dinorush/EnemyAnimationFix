@@ -1,6 +1,7 @@
 ﻿using AIGraph;
 using CullingSystem;
 using Enemies;
+using EnemyAnimationFix.Utils.Extensions;
 using HarmonyLib;
 using Player;
 using System;
@@ -14,6 +15,7 @@ namespace EnemyAnimationFix.Patches
     internal class EnemyCullPatches
     {
         private readonly static List<(Animator animator, C_CullBucket bucket)> _nearbyCullers = new(NearbyCap);
+        private readonly static List<C_CullBucket> _animatedCullers = new(10);
         private readonly static Dictionary<IntPtr, (EnemyAgent enemy, float sqrDist)> _cachedEnemies = new();
         private static float _nextUpdateTime = 0f;
         private const float UpdateInterval = 0.1f;
@@ -44,6 +46,15 @@ namespace EnemyAnimationFix.Patches
                     culler.Show();
                 }
             }
+
+            foreach (var culler in _animatedCullers)
+            {
+                if (culler.CullKey != C_Keys.CurrentCullKey)
+                {
+                    culler.CullKey = C_Keys.CurrentCullKey;
+                    culler.Show();
+                }
+            }
         }
 
         private static void CheckDeadCullers()
@@ -52,6 +63,12 @@ namespace EnemyAnimationFix.Patches
             {
                 if (_nearbyCullers[i].animator == null)
                     _nearbyCullers.RemoveAt(i);
+            }
+
+            for (int i = _animatedCullers.Count - 1; i >= 0; i--)
+            {
+                if (_animatedCullers[i] == null)
+                    _animatedCullers.RemoveAt(i);
             }
         }
 
@@ -123,9 +140,7 @@ namespace EnemyAnimationFix.Patches
         [HarmonyPrefix]
         private static void DisableAttackAnimCulling(ES_EnemyAttackBase __instance)
         {
-            if (!Configuration.DisableNearCull) return;
-
-            __instance.m_locomotion.m_animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            DisableAnimationCulling(__instance.m_locomotion);
         }
 
         [HarmonyPatch(typeof(ES_EnemyAttackBase), nameof(ES_EnemyAttackBase.CommonExit))]
@@ -135,10 +150,7 @@ namespace EnemyAnimationFix.Patches
         [HarmonyPostfix]
         private static void EnableAttackCulling(ES_EnemyAttackBase __instance)
         {
-            if (!Configuration.DisableNearCull) return;
-
-            var agent = __instance.m_locomotion.m_agent;
-            agent.SetAnimatorCullingEnabled(agent.MovingCuller.m_animatorCullingEnabled);
+            EnableAnimationCulling(__instance.m_locomotion);
         }
 
         [HarmonyPatch(typeof(ES_Hitreact), nameof(ES_Hitreact.DoHitReact))]
@@ -146,9 +158,7 @@ namespace EnemyAnimationFix.Patches
         [HarmonyPrefix]
         private static void DisableStaggerCulling(ES_HitreactBase __instance)
         {
-            if (!Configuration.DisableNearCull) return;
-
-            __instance.m_locomotion.m_animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            DisableAnimationCulling(__instance.m_locomotion);
         }
 
         [HarmonyPatch(typeof(ES_Hitreact), nameof(ES_Hitreact.Exit))]
@@ -157,10 +167,25 @@ namespace EnemyAnimationFix.Patches
         [HarmonyPostfix]
         private static void EnableStaggerCulling(ES_HitreactBase __instance)
         {
+            EnableAnimationCulling(__instance.m_locomotion);
+        }
+
+        private static void DisableAnimationCulling(EnemyLocomotion locomotion)
+        {
             if (!Configuration.DisableNearCull) return;
 
-            var agent = __instance.m_locomotion.m_agent;
-            agent.SetAnimatorCullingEnabled(agent.MovingCuller.m_animatorCullingEnabled);
+            locomotion.m_animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            _animatedCullers.Add(locomotion.m_agent.MovingCuller.CullBucket);
+        }
+
+        private static void EnableAnimationCulling(EnemyLocomotion locomotion)
+        {
+            if (!Configuration.DisableNearCull) return;
+
+            var agent = locomotion.m_agent;
+            var culler = agent.MovingCuller;
+            agent.SetAnimatorCullingEnabled(culler.m_animatorCullingEnabled);
+            _animatedCullers.Remove(bucket => bucket.Pointer == culler.Pointer);
         }
     }
 }

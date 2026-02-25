@@ -3,7 +3,6 @@ using Enemies;
 using EnemyAnimationFix.API;
 using EnemyAnimationFix.Networking.Notify;
 using EnemyAnimationFix.Patches;
-using EnemyAnimationFix.Utils;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.Runtime;
 using Il2CppInterop.Runtime.Runtime.VersionSpecific.Class;
