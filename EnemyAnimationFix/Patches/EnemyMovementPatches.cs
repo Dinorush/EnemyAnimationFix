@@ -148,5 +148,17 @@ namespace EnemyAnimationFix.Patches
         {
             _usedFogs.Add(__instance.m_owner.Pointer);
         }
+
+        [HarmonyPatch(typeof(EB_InCombatFlyer_GeomorphTraversal), nameof(EB_InCombatFlyer_GeomorphTraversal.Enter))]
+        [HarmonyPostfix]
+        private static void Post_FlyerTraversal(EB_InCombatFlyer_GeomorphTraversal __instance)
+        {
+            var ai = __instance.m_ai;
+            var data = __instance.CurrentData;
+            Vector3 dirIntoPortal = -ai.m_courseNavigation.m_navPortal.m_cullPortal.GetDirIntoNode(ai.m_enemyAgent.CourseNode.m_cullNode);
+            data.StartPosition = data.GatePosition - dirIntoPortal * 1.5f;
+            data.Direction = dirIntoPortal;
+            ai.m_courseNavigation.FlyerGraphTraversalData = data;
+        }
     }
 }
