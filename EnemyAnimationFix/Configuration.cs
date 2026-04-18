@@ -17,6 +17,9 @@ namespace EnemyAnimationFix
         private readonly static ConfigEntry<bool> _disableCullNear;
         public static bool DisableNearCull => _disableCullNear.Value;
 
+        private readonly static ConfigEntry<bool> _disableCorpseHitbox;
+        public static bool DisableCorpseHitbox => _disableCorpseHitbox.Value;
+
         private readonly static ConfigFile configFile;
 
         static Configuration()
@@ -37,6 +40,10 @@ namespace EnemyAnimationFix
             section = "Cull Settings";
             description = "Prevents nearby or attacking enemies from culling.\nThis fixes enemies not on screen failing to play footstep sounds or move when attacking.";
             _disableCullNear = configFile.Bind(section, "Disable Culling Nearby Enemies", true, description);
+
+            section = "Corpse Settings";
+            description = "Prevent melees from hitting corpses.";
+            _disableCorpseHitbox = configFile.Bind(section, "Disable Corpse Melee Hitbox", true, description);
         }
 
         internal static void Init()
@@ -48,6 +55,14 @@ namespace EnemyAnimationFix
         private static void OnFileChanged(LiveEditEventArgs _)
         {
             configFile.Reload();
+
+            if (LayerManager.MASK_ENEMY_DEAD != 0)
+            {
+                if (DisableCorpseHitbox)
+                    LayerManager.MASK_MELEE_ATTACK_TARGETS_WITH_STATIC &= ~LayerManager.MASK_ENEMY_DEAD;
+                else
+                    LayerManager.MASK_MELEE_ATTACK_TARGETS_WITH_STATIC |= LayerManager.MASK_ENEMY_DEAD;
+            }
         }
     }
 }
