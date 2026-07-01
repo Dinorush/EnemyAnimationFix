@@ -8,8 +8,16 @@ namespace EnemyAnimationFix.Patches
     {
         [HarmonyPatch(typeof(EnemyGroup), nameof(EnemyGroup.RegisterMember))]
         [HarmonyPostfix]
-        private static void PostEnemyRegistered(EnemyAgent enemyAgent)
+        private static void PostEnemyRegistered(EnemyGroup __instance, EnemyAgent enemyAgent)
         {
+            switch (__instance.GroupType)
+            {
+                case EnemyGroupType.Survival:
+                case EnemyGroupType.Hunters:
+                    break;
+                default:
+                    return;
+            }
             enemyAgent.m_hasValidTarget = false;
             enemyAgent.m_validTargetInterval = Clock.Time + UnityEngine.Random.RandomRange(Configuration.MinWaveSleepTime, Configuration.MaxWaveSleepTime);
 

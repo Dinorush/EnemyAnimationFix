@@ -11,10 +11,10 @@ using Enemies;
 
 namespace EnemyAnimationFix.NativePatches
 {
-    internal static class ValidTargetPatches
+    internal static class IsStuckPatches
     {
-        const int NOP = 0x90;
         const int AddssLen = 8;
+        static readonly byte[] Instructions = new byte[] { 0xF3, 0x0F, 0x10, 0x05, 0x0E, 0x00, 0xF4, 0x00 };
 
         public static unsafe void ApplyInstructionPatch()
         {
@@ -22,7 +22,7 @@ namespace EnemyAnimationFix.NativePatches
             for (int i = 0; i < classStruct.MethodCount; ++i)
             {
                 INativeMethodInfoStruct methodInfoStruct = UnityVersionHandler.Wrap(classStruct.Methods[i]);
-                if (Marshal.PtrToStringAnsi(methodInfoStruct.Name) == nameof(EnemyAgent.HasValidTarget))
+                if (Marshal.PtrToStringAnsi(methodInfoStruct.Name) == nameof(EnemyAgent.IsStuck))
                 {
                     // Found the method, now find the address of the instruction we want to change.
                     IntPtr methodPointer = methodInfoStruct.MethodPointer;
@@ -33,12 +33,12 @@ namespace EnemyAnimationFix.NativePatches
                         return;
                     }    
 
-                    // Change that instruction into `NOP`s.
+                    // Change that instruction from "Add 2" to "Equal Infinity".
                     using (new MemoryProtectionCookie(instructionIP, Kernel32.MemoryProtectionConstant.ExecuteReadWrite, new IntPtr(16)))
                     {
                         for (int j = 0; j < AddssLen; ++j)
                         {
-                            *(byte*)(instructionIP + j) = NOP;
+                            *(byte*)(instructionIP + j) = Instructions[j];
                         }
                     }
                     return;
