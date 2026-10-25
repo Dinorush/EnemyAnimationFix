@@ -1,5 +1,5 @@
 ﻿using Enemies;
-using EnemyAnimationFix.Networking.Notify;
+using EnemyAnimationFix.Networking;
 using HarmonyLib;
 using System.Diagnostics.CodeAnalysis;
 
@@ -45,7 +45,7 @@ namespace EnemyAnimationFix.Patches
         [HarmonyPostfix]
         private static void Post_StrikerAttackExit(ES_StrikerAttack __instance)
         {
-            if (!NotifyManager.MasterHasFix || Clock.Time <= __instance.m_performAttackTimer) return;
+            if (!NetworkManager.MasterHasFix || Clock.Time <= __instance.m_performAttackTimer) return;
 
             if (!TryGetTentacle(__instance, out var tentacle) || tentacle.m_currentRoutine == null) return;
 
@@ -67,7 +67,7 @@ namespace EnemyAnimationFix.Patches
         [HarmonyPostfix]
         private static void Post_TankPathMoveExit(ES_PathMove __instance)
         {
-            if (!NotifyManager.MasterHasFix) return;
+            if (!NetworkManager.MasterHasFix) return;
 
             // Fix omni-state for tank tentacles
             EnemyAbilities abilities = __instance.m_enemyAgent.Abilities;
@@ -101,7 +101,7 @@ namespace EnemyAnimationFix.Patches
         [HarmonyPostfix]
         private static void Post_ShooterAttackExit(ES_ShooterAttack __instance)
         {
-            if (!NotifyManager.MasterHasFix || Clock.Time <= __instance.m_performAttackTimer) return;
+            if (!NetworkManager.MasterHasFix || Clock.Time <= __instance.m_performAttackTimer) return;
 
             __instance.m_projectileAbility.FireEnd();
         }

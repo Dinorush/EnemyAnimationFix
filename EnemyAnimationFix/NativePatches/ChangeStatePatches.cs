@@ -1,7 +1,7 @@
 ﻿using BepInEx.Unity.IL2CPP.Hook;
 using Enemies;
 using EnemyAnimationFix.API;
-using EnemyAnimationFix.Networking.Notify;
+using EnemyAnimationFix.Networking;
 using EnemyAnimationFix.Patches;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.Runtime;
@@ -79,7 +79,7 @@ namespace EnemyAnimationFix.NativePatches
         {
             // Fix enemies canceling their melee when a player is inside them
             ES_Base state = __instance.CurrentState;
-            if (!NotifyManager.MasterHasFix || newState.m_stateEnum != ES_StateEnum.PathMove || state.m_stateEnum != ES_StateEnum.StrikerMelee) return true;
+            if (!NetworkManager.MasterHasFix || newState.m_stateEnum != ES_StateEnum.PathMove || state.m_stateEnum != ES_StateEnum.StrikerMelee) return true;
 
             ES_StrikerMelee melee = state.Cast<ES_StrikerMelee>();
             return (Clock.Time - melee.m_startTime) * melee.m_animSpeed >= melee.m_attackData.Duration;

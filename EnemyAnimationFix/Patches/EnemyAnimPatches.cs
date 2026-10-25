@@ -1,5 +1,5 @@
 ﻿using Enemies;
-using EnemyAnimationFix.Networking.Notify;
+using EnemyAnimationFix.Networking;
 using HarmonyLib;
 
 namespace EnemyAnimationFix.Patches
@@ -11,7 +11,7 @@ namespace EnemyAnimationFix.Patches
         [HarmonyPrefix]
         private static void FixGiantScream(ES_Scream __instance, ref pES_EnemyScreamData data)
         {
-            if (!NotifyManager.MasterHasFix || __instance.m_locomotion.AnimHandleName != EnemyLocomotion.AnimatorControllerHandleName.EnemyGiant) return;
+            if (!NetworkManager.MasterHasFix || __instance.m_locomotion.AnimHandleName != EnemyLocomotion.AnimatorControllerHandleName.EnemyGiant) return;
 
             data.AnimIndex = 0;
         }
@@ -21,7 +21,7 @@ namespace EnemyAnimationFix.Patches
         [HarmonyPrefix]
         private static void FixFiddlerAttack(ES_EnemyAttackBase __instance, ref int attackIndex)
         {
-            if (!NotifyManager.MasterHasFix || __instance.m_locomotion.AnimHandleName != EnemyLocomotion.AnimatorControllerHandleName.EnemyFiddler) return;
+            if (!NetworkManager.MasterHasFix || __instance.m_locomotion.AnimHandleName != EnemyLocomotion.AnimatorControllerHandleName.EnemyFiddler) return;
 
             attackIndex %= 2;
         }
@@ -30,7 +30,7 @@ namespace EnemyAnimationFix.Patches
         [HarmonyPrefix]
         private static void FixLowStagger(ES_Hitreact __instance, ref int index, ES_HitreactType hitreactType, ImpactDirection impactDirection)
         {
-            if (!NotifyManager.MasterHasFix || __instance.m_locomotion.AnimHandleName != EnemyLocomotion.AnimatorControllerHandleName.EnemyLow || hitreactType != ES_HitreactType.Light || impactDirection != ImpactDirection.Back) return;
+            if (!NetworkManager.MasterHasFix || __instance.m_locomotion.AnimHandleName != EnemyLocomotion.AnimatorControllerHandleName.EnemyLow || hitreactType != ES_HitreactType.Light || impactDirection != ImpactDirection.Back) return;
 
             index %= 3;
         }

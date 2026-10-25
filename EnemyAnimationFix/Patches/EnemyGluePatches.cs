@@ -1,5 +1,5 @@
 ﻿using Enemies;
-using EnemyAnimationFix.Networking.Foam;
+using EnemyAnimationFix.Networking;
 using HarmonyLib;
 using SNetwork;
 
@@ -26,7 +26,7 @@ namespace EnemyAnimationFix.Patches
 
             if (!SNet.IsMaster) return;
 
-            FoamManager.SendFoam(__instance.Owner, __instance.AttachedGlueRel);
+            NetworkManager.SendFoam(__instance.Owner, __instance.AttachedGlueRel);
         }
 
         [HarmonyPatch(typeof(ES_StuckInGlue), nameof(ES_StuckInGlue.ActivateState))]

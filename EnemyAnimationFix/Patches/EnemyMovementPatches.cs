@@ -1,6 +1,6 @@
 ﻿using BepInEx.Unity.IL2CPP.Utils.Collections;
 using Enemies;
-using EnemyAnimationFix.Networking.Notify;
+using EnemyAnimationFix.Networking;
 using EnemyAnimationFix.Utils.Extensions;
 using HarmonyLib;
 using SNetwork;
@@ -67,7 +67,7 @@ namespace EnemyAnimationFix.Patches
                 data.TargetLookDir.Value = __instance.TargetLookDir;
                 ++data.Tick;
                 pathMove.m_pathMoveData = data;
-                foreach (var client in NotifyManager.FixedClients)
+                foreach (var client in NetworkManager.FixedClients)
                     pathMove.m_pathMovePacket.Send(data, SNet_ChannelType.GameNonCritical, client);
                 return;
             }
