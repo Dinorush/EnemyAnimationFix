@@ -16,7 +16,7 @@ namespace EnemyAnimationFix.NativePatches
         const int AddssLen = 8;
         static readonly byte[] Instructions = new byte[] { 0xF3, 0x0F, 0x10, 0x05, 0x0E, 0x00, 0xF4, 0x00 };
 
-        public static unsafe void ApplyInstructionPatch()
+        public static unsafe void Apply()
         {
             INativeClassStruct classStruct = UnityVersionHandler.Wrap((Il2CppClass*)Il2CppClassPointerStore<EnemyAgent>.NativeClassPtr);
             for (int i = 0; i < classStruct.MethodCount; ++i)

@@ -8,7 +8,7 @@ using HarmonyLib;
 
 namespace EnemyAnimationFix
 {
-    [BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.4.8")]
+    [BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.5.0")]
     [BepInDependency("Dinorush.OptionalNetworkAPI", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
     internal sealed class EntryPoint : BasePlugin
@@ -17,9 +17,10 @@ namespace EnemyAnimationFix
         public override void Load()
         {
             new Harmony(MODNAME).PatchAll();
-            ChangeStatePatches.ApplyNativePatch();
-            ValidTargetPatches.ApplyInstructionPatch();
-            IsStuckPatches.ApplyInstructionPatch();
+            ClosestPlayerPatches.Apply();
+            ChangeStatePatches.Apply();
+            ValidTargetPatches.Apply();
+            IsStuckPatches.Apply();
             Configuration.Init();
             NetworkManager.Init();
             LevelAPI.OnLevelCleanup += LevelAPI_OnLevelCleanup;

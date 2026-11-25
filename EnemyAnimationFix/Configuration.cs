@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using BepInEx;
 using BepInEx.Configuration;
 using GTFO.API.Utilities;
@@ -20,42 +21,40 @@ namespace EnemyAnimationFix
         private readonly static ConfigEntry<bool> _disableCorpseHitbox;
         public static bool DisableCorpseHitbox => _disableCorpseHitbox.Value;
 
-        private readonly static ConfigFile configFile;
+        private readonly static ConfigFile _configFile;
 
         static Configuration()
         {
-            configFile = new ConfigFile(Path.Combine(Paths.ConfigPath, EntryPoint.MODNAME + ".cfg"), saveOnInit: true);
+            _configFile = new ConfigFile(Path.Combine(Paths.ConfigPath, EntryPoint.MODNAME + ".cfg"), saveOnInit: true);
 
             string section = "Sync Settings";
             string description = "Amount of time the enemy position is smoothed over to match host position when they stop moving to attack/scream/etc.";
-            _syncLerpTime = configFile.Bind(section, "Sync Position Time", 0.25f, description);
+            _syncLerpTime = _configFile.Bind(section, "Sync Position Time", 0.25f, description);
 
             section = "Wave Settings";
             description = "Minimum amount of time in seconds before enemies become active after spawning.";
-            _minWaveSleepTime = configFile.Bind(section, "Minimum Wave Inactive Time", 0f, description);
+            _minWaveSleepTime = _configFile.Bind(section, "Minimum Wave Inactive Time", 0f, description);
 
             description = "Maximum amount of time in seconds before enemies become active after spawning.";
-            _maxWaveSleepTime = configFile.Bind(section, "Maximum Wave Inactive Time", 6f, description);
+            _maxWaveSleepTime = _configFile.Bind(section, "Maximum Wave Inactive Time", 6f, description);
 
             section = "Cull Settings";
             description = "Prevents nearby or attacking enemies from culling.\nThis fixes enemies not on screen failing to play footstep sounds or move when attacking.";
-            _disableCullNear = configFile.Bind(section, "Disable Culling Nearby Enemies", true, description);
+            _disableCullNear = _configFile.Bind(section, "Disable Culling Nearby Enemies", true, description);
 
             section = "Corpse Settings";
             description = "Prevent melees from hitting corpses.";
-            _disableCorpseHitbox = configFile.Bind(section, "Disable Corpse Melee Hitbox", true, description);
+            _disableCorpseHitbox = _configFile.Bind(section, "Disable Corpse Melee Hitbox", true, description);
         }
 
         internal static void Init()
         {
-            LiveEditListener listener = LiveEdit.CreateListener(Paths.ConfigPath, EntryPoint.MODNAME + ".cfg", false);
-            listener.FileChanged += OnFileChanged;
+            SafeFileSystemWatcher.Create(_configFile);
+            _configFile.ConfigReloaded += OnFileChanged;
         }
 
-        private static void OnFileChanged(LiveEditEventArgs _)
+        private static void OnFileChanged(object? sender, EventArgs args)
         {
-            configFile.Reload();
-
             if (LayerManager.MASK_ENEMY_DEAD != 0)
             {
                 if (DisableCorpseHitbox)

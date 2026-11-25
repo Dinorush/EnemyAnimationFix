@@ -20,7 +20,7 @@ namespace EnemyAnimationFix.NativePatches
         private unsafe delegate void d_ChangeStateFromQueue(IntPtr _this, Il2CppMethodInfo* methodInfo);
 
         // Can't harmony patch the function due to out parameter so need a native detour
-        internal unsafe static void ApplyNativePatch()
+        internal unsafe static void Apply()
         {
             NativePatchAPI.AddChangeStatePrefix(FixMeleeCancel);
             NativePatchAPI.AddChangeStatePrefix(EnemyMovementPatches.Pre_ChangeState);
