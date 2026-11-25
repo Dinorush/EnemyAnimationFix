@@ -77,7 +77,7 @@ namespace EnemyAnimationFix.NativePatches
 
             foreach (var player in PlayerManager.PlayerAgentsInLevel)
             {
-                if (player == null || !player.Alive) continue;
+                if (player == null || !player.Alive || player.Dimension.IsArenaDimension) continue;
 
                 fallbackAgent = player;
                 var slot = player.PlayerSlotIndex;
