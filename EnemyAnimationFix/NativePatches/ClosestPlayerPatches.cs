@@ -47,7 +47,7 @@ namespace EnemyAnimationFix.NativePatches
             }
             catch (Exception e)
             {
-                DinoLogger.Error($"Error running TryGetClosestAlivePrefix: {e.StackTrace}");
+                DinoLogger.Error($"Error running TryGetClosestAlivePrefix: {e.Message}\n{e.StackTrace}");
             }
 
             if (runOriginal)
@@ -62,7 +62,7 @@ namespace EnemyAnimationFix.NativePatches
             }
             catch (Exception e)
             {
-                DinoLogger.Error($"Error running TryGetClosestAlivePostfix: {e.StackTrace}");
+                DinoLogger.Error($"Error running TryGetClosestAlivePostfix: {e.Message}\n{e.StackTrace}");
             }
 
             playerAgent = player != null ? player.Pointer : IntPtr.Zero;
@@ -77,7 +77,7 @@ namespace EnemyAnimationFix.NativePatches
 
             foreach (var player in PlayerManager.PlayerAgentsInLevel)
             {
-                if (player == null || !player.Alive || player.Dimension.IsArenaDimension) continue;
+                if (player == null || !player.Alive || player.Dimension?.IsArenaDimension == true) continue;
 
                 fallbackAgent = player;
                 var slot = player.PlayerSlotIndex;
